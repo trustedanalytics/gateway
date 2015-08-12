@@ -7,4 +7,4 @@ applications:
   env:
     GATEWAY_TRACE: "false"
     GATEWAY_ACKS: "false"
-    VERSION: "0.4.1-SNAPSHOT"
+    VERSION: "0.4.2.0"
