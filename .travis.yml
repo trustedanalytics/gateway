@@ -1,0 +1,14 @@
+language: go
+
+go:
+  - 1.4
+  - tip
+
+install:
+  - go get -d code.google.com/p/go.net/websocket
+  - go get -d github.com/Shopify/sarama
+  - go get -d github.com/cloudfoundry-community/go-cfenv
+  - go get -d code.google.com/p/go-uuid/uuid
+  - go get -d github.com/stretchr/testify/assert
+
+script: go test -v ./...

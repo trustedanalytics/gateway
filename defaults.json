@@ -1,0 +1,18 @@
+{
+  "id": "g1",
+  "index": 0,
+  "trace": true,
+  "server": {
+    "root": "/ws",
+    "host": "127.0.0.1",
+    "port": 8080,
+    "token": ""
+  },
+  "publisher": {
+    "uri": ["127.0.0.1:9092"],
+    "topic": "messages",
+    "acks": "false",
+    "compress": "true",
+    "flushevery": 1
+  }
+}
