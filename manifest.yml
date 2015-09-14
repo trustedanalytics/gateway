@@ -3,7 +3,6 @@ applications:
 - name: gateway
   memory: 512MB
   instances: 1
-  buildpack: https://github.com/cloudfoundry/go-buildpack
   env:
     GATEWAY_TRACE: "false"
     GATEWAY_ACKS: "false"
