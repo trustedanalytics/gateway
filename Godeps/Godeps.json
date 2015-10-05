@@ -1,6 +1,6 @@
 {
-	"ImportPath": "github.com/trustedanalytics/gateway",
-	"GoVersion": "go1.4.2",
+	"ImportPath": "github.com/intel-data/gateway",
+	"GoVersion": "go1.5.1",
 	"Deps": [
 		{
 			"ImportPath": "code.google.com/p/go-uuid/uuid",
@@ -13,32 +13,54 @@
 			"Rev": "937a34c9de13c766c814510f76bca091dee06028"
 		},
 		{
-			"ImportPath": "code.google.com/p/snappy-go/snappy",
-			"Comment": "null-20",
-			"Rev": "8850bd446ad6f18a271a08aae26bdf85bdf87c7f"
-		},
-		{
 			"ImportPath": "github.com/Shopify/sarama",
-			"Comment": "v1.1.0-27-g6c89807",
-			"Rev": "6c8980798e72bf29984f29a794e9610d88b4b547"
+			"Comment": "v1.6.0",
+			"Rev": "4faee6199919651f769e85fd97f1b3bf5739cb81"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry-community/go-cfenv",
-			"Comment": "v1.11",
-			"Rev": "d09cf526a66903121cc1387caa5951b9dcb35642"
+			"Comment": "v1.12",
+			"Rev": "c682e189b94b0b2ec6edf12363df2eecf29d7256"
+		},
+		{
+			"ImportPath": "github.com/dgrijalva/jwt-go",
+			"Comment": "v2.3.0-6-gf62f64e",
+			"Rev": "f62f64ea222e5e6d6d86421b5507b0862a3ebf7f"
 		},
 		{
 			"ImportPath": "github.com/eapache/go-resiliency/breaker",
-			"Comment": "v1.0.0",
-			"Rev": "6800482f2c813e689c88b7ed3282262385011890"
+			"Comment": "v1.0.0-1-ged0319b",
+			"Rev": "ed0319b32e66e3295db52695ba3ee493e823fbfe"
+		},
+		{
+			"ImportPath": "github.com/eapache/queue",
+			"Comment": "v1.0.2",
+			"Rev": "ded5959c0d4e360646dc9e9908cff48666781367"
+		},
+		{
+			"ImportPath": "github.com/golang/snappy",
+			"Rev": "723cc1e459b8eea2dea4583200fd60757d40097a"
+		},
+		{
+			"ImportPath": "github.com/gorilla/context",
+			"Rev": "1c83b3eabd45b6d76072b66b746c20815fb2872d"
+		},
+		{
+			"ImportPath": "github.com/gorilla/mux",
+			"Rev": "ad4d7a5882b961e07e2626045eb995c022ac6664"
+		},
+		{
+			"ImportPath": "github.com/klauspost/crc32",
+			"Rev": "f8d2e12057f7ef26ae42ecfa42697f4bdc32d7eb"
 		},
 		{
 			"ImportPath": "github.com/mitchellh/mapstructure",
-			"Rev": "442e588f213303bec7936deba67901f8fc8f18b1"
+			"Rev": "281073eb9eb092240d33ef253c404f1cca550309"
 		},
 		{
 			"ImportPath": "github.com/stretchr/testify/assert",
-			"Rev": "e4ec8152c15fc46bd5056ce65997a07c7d415325"
+			"Comment": "v1.0-45-gbcd32dc",
+			"Rev": "bcd32dcc8b1e09b14f55703dcf891fdd82561143"
 		}
 	]
 }

@@ -2,16 +2,18 @@
 
 set -ex
 
-TOXIPROXY_VERSION=1.0.0
+TOXIPROXY_VERSION=1.0.3
 
 mkdir -p ${KAFKA_INSTALL_ROOT}
 if [ ! -f ${KAFKA_INSTALL_ROOT}/kafka-${KAFKA_VERSION}.tgz ]; then
     wget --quiet http://apache.mirror.gtcomm.net/kafka/${KAFKA_VERSION}/kafka_2.10-${KAFKA_VERSION}.tgz -O ${KAFKA_INSTALL_ROOT}/kafka-${KAFKA_VERSION}.tgz
 fi
-if [ ! -f ${KAFKA_INSTALL_ROOT}/toxiproxy ]; then
-    wget --quiet https://github.com/Shopify/toxiproxy/releases/download/v${TOXIPROXY_VERSION}/toxiproxy-linux-amd64 -O ${KAFKA_INSTALL_ROOT}/toxiproxy
-    chmod +x ${KAFKA_INSTALL_ROOT}/toxiproxy
+if [ ! -f ${KAFKA_INSTALL_ROOT}/toxiproxy-${TOXIPROXY_VERSION} ]; then
+    wget --quiet https://github.com/Shopify/toxiproxy/releases/download/v${TOXIPROXY_VERSION}/toxiproxy-linux-amd64 -O ${KAFKA_INSTALL_ROOT}/toxiproxy-${TOXIPROXY_VERSION}
+    chmod +x ${KAFKA_INSTALL_ROOT}/toxiproxy-${TOXIPROXY_VERSION}
 fi
+rm -f ${KAFKA_INSTALL_ROOT}/toxiproxy
+ln -s ${KAFKA_INSTALL_ROOT}/toxiproxy-${TOXIPROXY_VERSION} ${KAFKA_INSTALL_ROOT}/toxiproxy
 
 for i in 1 2 3 4 5; do
     ZK_PORT=`expr $i + 2180`
@@ -28,6 +30,7 @@ for i in 1 2 3 4 5; do
     sed -i s/KAFKAID/${KAFKA_PORT}/g ${KAFKA_INSTALL_ROOT}/kafka-${KAFKA_PORT}/config/server.properties
     sed -i s/KAFKAPORT/${KAFKA_PORT_REAL}/g ${KAFKA_INSTALL_ROOT}/kafka-${KAFKA_PORT}/config/server.properties
     sed -i s/KAFKA_HOSTNAME/${KAFKA_HOSTNAME}/g ${KAFKA_INSTALL_ROOT}/kafka-${KAFKA_PORT}/config/server.properties
+    sed -i s/ZK_PORT/${ZK_PORT}/g ${KAFKA_INSTALL_ROOT}/kafka-${KAFKA_PORT}/config/server.properties
 
     KAFKA_DATADIR="${KAFKA_INSTALL_ROOT}/kafka-${KAFKA_PORT}/data"
     mkdir -p ${KAFKA_DATADIR}

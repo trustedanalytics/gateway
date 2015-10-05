@@ -23,13 +23,29 @@ import (
 	"code.google.com/p/go.net/websocket"
 )
 
+type Authenticator interface {
+	Validate(*http.Request) bool
+}
+
 func newBroker() *broker {
 	clients := make(map[int64]*handler, 5)
 	addCh := make(chan *handler, 5)
 	delCh := make(chan *handler)
 	doneCh := make(chan bool)
 	errCh := make(chan error)
-	authV := NewAuth(args.Server.Token)
+	var authV Authenticator
+
+	switch args.Server.AuthMethod {
+	case "none":
+		log.Println("Using no authentication")
+		authV = NewNoAuth()
+	case "simple":
+		log.Println("Using simple authentication")
+		authV = NewSimpleAuth(args.Server.Token)
+	case "jwt":
+		log.Println("Using JWT authentication")
+		authV = NewJwtAuth()
+	}
 
 	return &broker{
 		clients,
@@ -47,7 +63,7 @@ type broker struct {
 	delCh   chan *handler
 	doneCh  chan bool
 	errCh   chan error
-	authVal *Auth
+	authVal Authenticator
 }
 
 func (s *broker) add(c *handler) { s.addCh <- c }
@@ -67,7 +83,7 @@ func (s *broker) listen() {
 		}()
 
 		// create a new producer client per connection
-		if s.authVal.Valid(ws.Request()) {
+		if s.authVal.Validate(ws.Request()) {
 			handler := newClient(ws, s)
 			s.add(handler)
 			handler.listen()

@@ -28,25 +28,43 @@ import (
 var args = Config{}
 
 func init() {
-
 	log.SetOutput(os.Stdout)
 	log.SetFlags(log.Lshortfile)
 
 	// load from local file
 	loadConfig("./defaults.json", &args)
 
-	args.Trace = GetEnvVarAsBool("GATEWAY_TRACE", false)
-	args.Pub.Ack = GetEnvVarAsBool("GATEWAY_ACKS", false)
-	args.Pub.Compress = GetEnvVarAsBool("GATEWAY_COMPRESS", true)
-	args.Server.Token = os.Getenv("GATEWAY_TOKEN")
-	args.Pub.Topic = os.Getenv("GATEWAY_TOPIC")
+	args.Trace = GetEnvVarAsBool("GATEWAY_TRACE", args.Trace)
+	args.Pub.Ack = GetEnvVarAsBool("GATEWAY_ACKS", args.Pub.Ack)
+	args.Pub.Compress = GetEnvVarAsBool("GATEWAY_COMPRESS", args.Pub.Compress)
+
+	SetWithStringEnvVar("GATEWAY_AUTH_METHOD", &args.Server.AuthMethod)
+	args.Server.AuthMethod = strings.ToLower(args.Server.AuthMethod)
+
+	switch args.Server.AuthMethod {
+	case "none":
+	case "simple":
+		SetWithStringEnvVar("GATEWAY_TOKEN", &args.Server.Token)
+		if len(args.Server.Token) == 0 {
+			log.Panicf("Simple auth requires a token")
+		}
+	case "jwt":
+		SetWithStringEnvVar("GATEWAY_DEVICE_KEYS_URI", &args.Server.DeviceKeysURI)
+		if len(args.Server.DeviceKeysURI) == 0 {
+			log.Panicf("JWT auth requires an API URI for public key retrieval")
+		}
+		args.Server.TolerableJWTAge = GetEnvVarAsInt("GATEWAY_TOLERABLE_JWT_AGE", args.Server.TolerableJWTAge)
+	default:
+		log.Panicf("Invalid gateway authentication method: %v", args.Server.AuthMethod)
+	}
+
+	SetWithStringEnvVar("GATEWAY_TOPIC", &args.Pub.Topic)
 
 	var kafkaNodes string = os.Getenv("GATEWAY_QUEUE")
 
 	cf, _ := cfenv.Current()
 
 	if cf != nil {
-
 		Trace("CF", cf)
 
 		args.ID = fmt.Sprintf("%s-%d", cf.ID, cf.Index)
@@ -57,9 +75,8 @@ func init() {
 
 		kafka, _ := cf.Services.WithTag("kafka")
 		if len(kafka) > 0 {
-			kafkaNodes = kafka[0].Credentials["uri"]
+			kafkaNodes = kafka[0].Credentials["uri"].(string)
 		}
-
 	} else {
 		log.Println("No CF")
 	}
@@ -73,10 +90,13 @@ func init() {
 
 // ServerConfig represents the Web server configuration holder
 type ServerConfig struct {
-	Root  string `json:"root,omitempty"`
-	Host  string `json:"host,omitempty"`
-	Port  int    `json:"port,omitempty"`
-	Token string `json:"token,omitempty"`
+	Root            string `json:"root,omitempty"`
+	Host            string `json:"host,omitempty"`
+	Port            int    `json:"port,omitempty"`
+	Token           string `json:"token,omitempty"`
+	AuthMethod      string `json:"auth_method"`
+	DeviceKeysURI   string `json:"device_keys_uri,omitempty"`
+	TolerableJWTAge int    `json:"tolerable_jwt_age,omitempty"`
 }
 
 // PubConfig represents the publisher configuration holder

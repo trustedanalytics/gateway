@@ -56,12 +56,17 @@ func GetEnvVarAsInt(k string, d int) int {
 	if len(s) < 1 {
 		return d
 	}
-	v, err := strconv.ParseInt(s, d, 8)
-	if err != nil {
-		log.Fatalf("unable to parse int from %s: %v", k, err)
-		return d
+	return ParseInt(s, d)
+}
+
+// SetWithEnvVar sets variable to the string value of the env variable envVariable
+// if it is set. If no env variable by the name envVariable is found, variable
+// is not changed.
+func SetWithStringEnvVar(envVariable string, variable *string) {
+	envVarVal := os.Getenv(envVariable)
+	if len(envVarVal) > 0 {
+		*variable = envVarVal
 	}
-	return int(v)
 }
 
 // GetEnvVarAsBool wrapper for env variable as Bool

@@ -6,13 +6,14 @@
     "root": "/ws",
     "host": "127.0.0.1",
     "port": 8080,
-    "token": ""
+    "auth_method": "none",
+    "tolerable_jwt_age": 5
   },
   "publisher": {
     "uri": ["127.0.0.1:9092"],
     "topic": "messages",
-    "acks": "false",
-    "compress": "true",
+    "acks": false,
+    "compress": true,
     "flushevery": 1
   }
 }

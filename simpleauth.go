@@ -22,24 +22,18 @@ import (
 	"strings"
 )
 
-// NewAuth factors new authentication object
-func NewAuth(token string) *Auth {
-	a := &Auth{token: decode(token)}
-	a.enabled = len(token) > 0
-	return a
+// SimpleAuth is the type representing auth imp
+type SimpleAuth struct {
+	token string
 }
 
-// Auth is the type representing auth imp
-type Auth struct {
-	enabled bool
-	token   string
+// NewSimpleAuth creates a new simple authentication object
+func NewSimpleAuth(token string) Authenticator {
+	return &SimpleAuth{token: decode(token)}
 }
 
-// Valid validates the authentication from HTTP request
-func (a *Auth) Valid(req *http.Request) bool {
-	if !a.enabled {
-		return true
-	}
+// Validate validates the authentication from HTTP request
+func (a *SimpleAuth) Validate(req *http.Request) bool {
 	auths, _ := req.Header["Authorization"]
 	if len(auths) != 1 {
 		log.Println("missing Authorization")

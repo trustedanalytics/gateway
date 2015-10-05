@@ -1,7 +1,7 @@
 default: fmt vet errcheck test
 
 test:
-	go test -v -race ./...
+	go test -v -timeout 60s -race ./...
 
 vet:
 	go vet ./...
@@ -21,4 +21,4 @@ install_go_vet:
 	go get golang.org/x/tools/cmd/vet
 
 get:
-	go get
+	go get -t

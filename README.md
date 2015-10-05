@@ -12,7 +12,7 @@ Implemented:
 TODO:
 
 * Client-level authorization
-* Dynamic backend configuration 
+* Dynamic backend configuration
 
 ## Installation
 
@@ -27,7 +27,7 @@ To start the server invoke the `gateway` executable
 
 ## Configuration
 
-The `gateway` comes pre-configured with a default (`config.json`). 
+The `gateway` comes pre-configured with a default (`defaults.json`).
 
 ```
 {
@@ -37,7 +37,8 @@ The `gateway` comes pre-configured with a default (`config.json`).
     "root": "/ws",
     "host": "127.0.0.1",
     "port": 8080,
-    "token": ""
+    "auth_method": "none",
+    "tolerable_jwt_age": 5
   },
   "publisher": {
     "uri": [
@@ -53,7 +54,20 @@ The `gateway` comes pre-configured with a default (`config.json`).
 * `topic` will be automatically created if one does not exists
 * `acks` if set to true will wait for acknowledgment from all brokers (slower)
 * `retries` number of times to retry a metadata request when a partition is in the middle of leader election (10+)
+* `auth_method` can be one of `none`, `simple`, or `jwt` (environment variable GATEWAY_AUTH_METHOD overwrites this default)
+* If you choose `none` as the authentication method, `gateway` will not attempt to authenticate any clients (all clients are authentic)
+* If you wish to enable JWT authentication, set `auth_method` or the environment variable GATEWAY_AUTH_METHOD to `jwt`. When JWT authentication is enabled, the environment variable GATEWAY_DEVICE_KEYS_URI or the `device_keys_uri` config (under `server` in `defaults.json`) must be set to a GET REST API endpoint with the following properties:
+  * the endpoint should have the following format:
+    * `device_id` must be a path parameter and `alg` must be a URL parameter. An example format is http[s]://\<devices_repo_addr\>/devices/:device_id/key?alg=<alg>.
+    * `alg` will hold values of the form 'ESXXX' or 'RSXXX'
+  * the endpoint should return a JSON containing a `public_key` property with its value being the hex string containing the contents of the .pem public key file of the sending device with id `device_id`.
 
+When JWT authentication is enabled, clients attempting to connect to `gateway` must include a JWT (in the Authorization header field) with the following properties:
+* The payload must include two fields:
+  * `device_id` with the device id of the client (a public key for that `device_id` must be available from the API endpoint set by GATEWAY_DEVICE_KEYS_URI)
+  * `iat` which is a Unix epoch time in seconds (visit [this link](https://tools.ietf.org/html/rfc7519#section-4.1.6) for details)
+    * The acceptable age for a JWT can be changed (using unit of minutes) by setting `tolerable_jwt_age` in `defaults.json` or by settings the GATEWAY_TOLERABLE_JWT_AGE environment variable
+* The JWT must be signed using an ES\* or RS\* algorithm.
 
 > Note, when runtime is [Cloud Foundry](https://github.com/cloudfoundry) the following configuration attributes are going to be overwritten with [CF environment variables](http://docs.cloudfoundry.org/devguide/deploy-apps/environment-variable.html):
 
@@ -63,17 +77,17 @@ The `gateway` comes pre-configured with a default (`config.json`).
     server.token = $GATEWAY_TOKEN
     publisher.uri = VCAP_SERVICES[x].credentials.uri
     publisher.topic = $GATEWAY_TOPIC
-    
+
 ## Cloud Foundry Push
 
-Make sure the code build locally 
+Make sure the code builds locally
 
 ```
 go build
 go test
 ```
 
-Pre-package the dependancies 
+Pre-package the dependancies
 
 ```
 godep save
@@ -85,7 +99,6 @@ Export Application Variables
 
 ```
 export APP_NAME="my-app-name"
-export APP_TOKEN=$(echo -n 'your-secret-here' | openssl base64)
 ```
 
 Push the code to CF
@@ -95,13 +108,26 @@ Push the code to CF
 ```
 cf push $APP_NAME -n $APP_NAME --no-start
 cf set-env $APP_NAME GATEWAY_TOPIC $APP_NAME
+```
+
+* If you plan to use simple authentication, set the GATEWAY_TOKEN environment variable
+```
+export APP_TOKEN=$(echo -n 'your-secret-here' | openssl base64)
 cf set-env $APP_NAME GATEWAY_TOKEN $APP_TOKEN
+```
+* If you plan to use JWT-based authentication, set the GATEWAY_DEVICE_KEYS_URI environment variable
+```
+cf set-env $APP_NAME GATEWAY_DEVICE_KEYS_URI http[s]://<devices_repo_addr>/devices/:device_id/key
+```
+
+Finally, to start `gateway` run
+```
 cf start $APP_NAME
 ```
 
 ## Testing
 
-In addition to the integrated `Go` test, the `gateway` application also includes a simple Node.js test client: `etc/client.js`. This client is intended for perform a simple smoke-test of the deployed `gateway` application. 
+In addition to the integrated `Go` test, the `gateway` application also includes a simple Node.js test client: `etc/client.js`. This client is intended for perform a simple smoke-test of the deployed `gateway` application.
 
 ```
 node client -s 'wss' \
@@ -143,18 +169,18 @@ The test client will loop through and send to the gateway individual events at t
 
 If you are not sure of the arguments, execute `node client.js --help` for some help.
 
-### Scaling 
+### Scaling
 
-If your throughput on the gateway is not sufficient, you can increase the number of application instances. Following command sets the total number of application instances to `3` 
+If your throughput on the gateway is not sufficient, you can increase the number of application instances. Following command sets the total number of application instances to `3`
 
 ```
 cf scale $APP_NAME -i 3
 ```
 
 ## VERSIONING:
-We use [bumpversion](https://github.com/peritus/bumpversion) tool to manage version written in `manifest.yml`. 
+We use [bumpversion](https://github.com/peritus/bumpversion) tool to manage version written in `manifest.yml`.
 Release versions are in standard `Major.Minor.Patch` format. Snapshot version are in `Major.Minor.Patch.build` format.
-Each realease version component can be easily upgraded with `bumpvresion` command, but you don't have to do it manually - all things happen at TeamCity. 
+Each realease version component can be easily upgraded with `bumpvresion` command, but you don't have to do it manually - all things happen at TeamCity.
 If you want to change version manually by yourself (without bumpversion tool) REMEMBER to change `version` in two files: .bumpversion.cfg and manifest.yml!
 
 **Notable things:**
@@ -203,7 +229,7 @@ cd $BROKER_NAME
 and clone gateway to apps/gateway with command
 ```
 git clone git@github.com:trustedanalytics/gateway apps/gateway
-```	
+```
 Download cf client from [link](https://cli.run.pivotal.io/stable?release=linux64-binary&source=github) or alternative version [link](https://github.com/cloudfoundry/cli#downloads) and click on Stable Binaries > Linux 64 bit. Then unpack and place it in broker's bin directory.
 
 Go to manifest.yml in broker directory and add to the env values:
@@ -229,7 +255,7 @@ applications:
     CF_USER: admin
     CF_PASS: password
     CF_DEP: kafka|shared
-```	
+```
 Open catalog.json and edit values:
 * services -> id (must be unique in environment)
 * services -> name (must be unique eg. gateway*)
