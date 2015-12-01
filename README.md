@@ -214,7 +214,7 @@ The `gateway` decorates the inbound messages with following attributes:
 }
 ```
 
-## Deploying to Marketpalce with app-launching-service-broker
+## Preparing package with app-launching-service-broker
 
 First define your broker name:
 ```
@@ -296,6 +296,8 @@ applications:
 ```
 
 Next go to apps/gateway and copy Godeps folder to the broker directory (there is already one) - when asked about what to do with duplicates click skip all.
+
+#### Registering package in marketplace
 Go to broker directory, push app ,create service broker and enable service access, can be done with commends:
 ```
 cf push
