@@ -68,7 +68,6 @@ type broker struct {
 
 func (s *broker) add(c *handler) { s.addCh <- c }
 func (s *broker) del(c *handler) { s.delCh <- c }
-func (s *broker) done()          { s.doneCh <- true }
 func (s *broker) err(err error)  { s.errCh <- err }
 func (s *broker) listen() {
 
@@ -108,17 +107,15 @@ func (s *broker) listen() {
 		case c := <-s.addCh:
 			s.clients[c.id] = c
 			if args.Trace {
-				log.Printf("app:%d clients:%d", args.Index, len(s.clients))
+				log.Printf("app:%d handler:%d clients:%d", args.Index, c.id, len(s.clients))
 			}
 		case c := <-s.delCh:
 			delete(s.clients, c.id)
 			if args.Trace {
-				Trace("handler deleted", c)
+				Trace("handler deleted", c.id)
 			}
 		case err := <-s.errCh:
 			log.Println("error:", err.Error())
-		case <-s.doneCh:
-			return
 		}
 	}
 }

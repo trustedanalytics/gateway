@@ -39,7 +39,6 @@ type handler struct {
 	ws     *websocket.Conn
 	server *broker
 	ch     chan *interface{}
-	doneCh chan bool
 	sender chan *Message
 }
 
@@ -58,19 +57,16 @@ func newClient(ws *websocket.Conn, s *broker) *handler {
 	}
 	atomic.AddInt64(&maxClientID, 1)
 	ch := make(chan *interface{}, channelBufSize)
-	doneCh := make(chan bool)
 
 	h := &handler{
 		id:     maxClientID,
 		ws:     ws,
 		server: s,
 		ch:     ch,
-		doneCh: doneCh,
 		sender: make(chan *Message, 1),
 	}
 
 	go produce(h.sender)
-
 	return h
 }
 
@@ -86,30 +82,23 @@ func (c *handler) write(msg *interface{}) {
 }
 
 func (c *handler) conn() *websocket.Conn { return c.ws }
-func (c *handler) bone()                 { c.doneCh <- true }
 func (c *handler) listen()               { c.listenRead() }
 func (c *handler) listenRead() {
 	for {
-		select {
-		case <-c.doneCh:
+		var m string
+		err := msg.Receive(c.ws, &m)
+		if err == io.EOF {
 			c.server.del(c)
-			c.doneCh <- true
 			return
-		default:
-			var m string
-			err := msg.Receive(c.ws, &m)
-			if err == io.EOF {
-				c.doneCh <- true
-			} else if err != nil {
-				c.server.err(err)
-			} else {
-				if args.Trace {
-					atomic.AddInt64(&maxMsgID, 1)
-					log.Printf("handler[%d] queued > msg[%d]:%s",
-						c.id, maxMsgID, m)
-				}
-				c.sender <- NewMessage(m)
+		} else if err != nil {
+			c.server.err(err)
+		} else {
+			if args.Trace {
+				atomic.AddInt64(&maxMsgID, 1)
+				log.Printf("handler[%d] queued > msg[%d]:%s",
+					c.id, maxMsgID, m)
 			}
+			c.sender <- NewMessage(m)
 		}
 	}
 }
