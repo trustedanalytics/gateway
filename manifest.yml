@@ -2,10 +2,11 @@
 applications:
 - name: gateway
   memory: 512MB
+  disk_quota: 128MB
   instances: 1
   services:
     - gateway-kafka
   env:
     GATEWAY_TRACE: "false"
     GATEWAY_ACKS: "false"
-    VERSION: "0.4.5"
+    VERSION: "0.4.6"
