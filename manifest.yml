@@ -9,4 +9,4 @@ applications:
   env:
     GATEWAY_TRACE: "false"
     GATEWAY_ACKS: "false"
-    VERSION: "0.4.6"
+    VERSION: "0.4.7"
